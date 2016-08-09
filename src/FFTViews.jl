@@ -49,7 +49,10 @@ Base.parent(F::AbstractFFTView) = F.parent
 Base.indices(F::AbstractFFTView) = map(indrange, indices(parent(F)))
 indrange(i) = URange(first(i)-1, last(i)-1)
 
-Base.fft(F::FFTView) = fft(parent(F))
+Base.fft(F::FFTView; kwargs...) = fft(parent(F); kwargs...)
+Base.rfft(F::FFTView; kwargs...) = rfft(parent(F); kwargs...)
+Base.fft(F::FFTView, dims; kwargs...) = fft(parent(F), dims; kwargs...)
+Base.rfft(F::FFTView, dims; kwargs...) = rfft(parent(F), dims; kwargs...)
 
 @inline reindex{V}(::Type{V}, inds, I) = (_reindex(V, inds[1], I[1]), reindex(V, tail(inds), tail(I))...)
 reindex{V}(::Type{V}, ::Tuple{}, ::Tuple{}) = ()
