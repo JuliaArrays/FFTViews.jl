@@ -19,6 +19,33 @@ end
     @test isempty(detect_ambiguities(FFTViews, Base, Core))
 end
 
+@testset "basics" begin
+    a = FFTView{Float64,2}((5,7))
+    @test indices(a) == (0:4, 0:6)
+    @test eltype(a) == Float64
+    a = FFTView{Float64}((5,7))
+    @test indices(a) == (0:4, 0:6)
+    @test eltype(a) == Float64
+    @test_throws MethodError FFTView{Float64,3}((5,7))
+    for i = 1:35
+        a[i] = i
+    end
+    @test a[3,1] == 9
+    @test a[:,0] == FFTView(collect(1:5))
+    @test a[0,:] == FFTView(collect(1:5:35))
+    @test a[1,0:7] == [2:5:35;2]
+    @test a[2,[0,1,0,-1]] == [3,8,3,33]
+    @test a[3,trues(9)] == [9,14,19,24,29,34,4,9,14]
+    @test a[3,FFTView(trues(9))] == [4,9,14,19,24,29,34,4,9]
+    b = similar(Array{Int}, indices(a))
+    @test isa(b, FFTView)
+    @test indices(b) == indices(a)
+    @test eltype(b) == Int
+    @test reshape(a, Val{2}) === a
+    @test reshape(a, Val{1}) == FFTView(convert(Vector{Float64}, collect(1:35)))
+    @test indices(reshape(a, Val{3})) == (0:4,0:6,0:0)
+end
+
 @testset "convolution-shift" begin
     for l in (8,9)
         a = zeros(l)
