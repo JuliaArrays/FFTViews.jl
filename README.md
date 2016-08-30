@@ -1,8 +1,8 @@
 # FFTViews
 
-[![Build Status](https://travis-ci.org/timholy/FFTViews.jl.svg?branch=master)](https://travis-ci.org/timholy/FFTViews.jl)
+[![Build Status](https://travis-ci.org/JuliaArrays/FFTViews.jl.svg?branch=master)](https://travis-ci.org/JuliaArrays/FFTViews.jl)
 
-[![codecov.io](http://codecov.io/github/timholy/FFTViews.jl/coverage.svg?branch=master)](http://codecov.io/github/timholy/FFTViews.jl?branch=master)
+[![codecov.io](http://codecov.io/github/JuliaArrays/FFTViews.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaArrays/FFTViews.jl?branch=master)
 
 A package for simplifying operations that involve fourier
 transforms. An FFTView of an array uses periodic boundary conditions
