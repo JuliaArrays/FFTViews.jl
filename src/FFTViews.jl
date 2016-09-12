@@ -10,8 +10,9 @@ include(CustomUnitRanges.filename_for_urange)
 Base.checkindex(::Type{Bool}, inds::URange, ::Colon) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::Real) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::Range) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
+Base.checkindex(::Type{Bool}, inds::URange, ::AbstractVector{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray{Bool}) = true
+Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
 
 export FFTView
 
