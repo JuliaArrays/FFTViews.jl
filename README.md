@@ -4,7 +4,7 @@
 
 [![codecov.io](http://codecov.io/github/JuliaArrays/FFTViews.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaArrays/FFTViews.jl?branch=master)
 
-A package for simplifying operations that involve fourier
+A package for simplifying operations that involve Fourier
 transforms. An FFTView of an array uses periodic boundary conditions
 for indexing, and shifts all indices of the array downward by 1.
 
