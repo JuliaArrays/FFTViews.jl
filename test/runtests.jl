@@ -15,8 +15,10 @@ function test_approx_eq_periodic(a::FFTView, b::FFTView)
     nothing
 end
 
-@testset "ambiguities" begin
-    @test isempty(detect_ambiguities(FFTViews, Base, Core))
+if VERSION < v"0.6.0-dev"
+    @testset "ambiguities" begin
+        @test isempty(detect_ambiguities(FFTViews, Base, Core))
+    end
 end
 
 @testset "basics" begin

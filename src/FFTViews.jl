@@ -1,6 +1,7 @@
 module FFTViews
 
 using Base: tail, unsafe_length
+using Compat
 
 # A custom rangetype that will be used for indices and never throws a
 # boundserror because the domain is actually periodic.
@@ -16,13 +17,13 @@ Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
 
 export FFTView
 
-abstract AbstractFFTView{T,N} <: AbstractArray{T,N}
+@compat abstract type AbstractFFTView{T,N} <: AbstractArray{T,N} end
 
 immutable FFTView{T,N,A<:AbstractArray} <: AbstractFFTView{T,N}
     parent::A
 
-    function FFTView(parent::A)
-        new(parent)
+    function (::Type{FFTView{T,N,A}}){T,N,A}(parent::A)
+        new{T,N,A}(parent)
     end
 end
 FFTView{T,N}(parent::AbstractArray{T,N}) = FFTView{T,N,typeof(parent)}(parent)
