@@ -1,3 +1,5 @@
+__precompile__(true)
+
 module FFTViews
 
 using Base: tail, unsafe_length
