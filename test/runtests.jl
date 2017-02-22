@@ -3,20 +3,22 @@ using Base.Test
 
 function test_approx_eq_periodic(a::FFTView, b)
     for I in CartesianRange(indices(b))
-        @test_approx_eq a[I-1] b[I]
+        @test a[I-1] ≈ b[I]
     end
     nothing
 end
 
 function test_approx_eq_periodic(a::FFTView, b::FFTView)
     for I in CartesianRange(indices(b))
-        @test_approx_eq a[I] b[I]
+        @test a[I] ≈ b[I]
     end
     nothing
 end
 
-@testset "ambiguities" begin
-    @test isempty(detect_ambiguities(FFTViews, Base, Core))
+if VERSION < v"0.6.0-dev"
+    @testset "ambiguities" begin
+        @test isempty(detect_ambiguities(FFTViews, Base, Core))
+    end
 end
 
 @testset "basics" begin
@@ -54,15 +56,15 @@ end
         v[0] = 1
         p = rand(l)
         pfilt = ifft(fft(p).*fft(v))
-        @test_approx_eq real(pfilt) p
+        @test real(pfilt) ≈ p
         v[0] = 0
         v[-1] = 1
         pfilt = ifft(fft(p).*fft(v))
-        @test_approx_eq real(pfilt) circshift(p, -1)
+        @test real(pfilt) ≈ circshift(p, -1)
         v[-1] = 0
         v[+1] = 1
         pfilt = ifft(fft(p).*fft(v))
-        @test_approx_eq real(pfilt) circshift(p, +1)
+        @test real(pfilt) ≈ circshift(p, +1)
     end
     for l2 in (8,9), l1 in (8,9)
         a = zeros(l1,l2)
@@ -75,7 +77,7 @@ end
             fill!(a, 0)
             v[offset...] = 1
             pfilt = ifft(fft(p).*fft(v))
-            @test_approx_eq real(pfilt) circshift(p, offset)
+            @test real(pfilt) ≈ circshift(p, offset)
         end
     end
 end
@@ -95,20 +97,20 @@ using OffsetArrays
             fill!(a, 0)
             v[offset...] = 1
             pfilt = ifft(fft(p).*fft(v))
-            @test_approx_eq real(pfilt) circshift(p, offset)
+            @test real(pfilt) ≈ circshift(p, offset)
             pofilt = ifft(fft(po).*fft(v))
             test_approx_eq_periodic(FFTView(real(pofilt)), circshift(po, offset))
             pfilt = irfft(rfft(p).*rfft(v), length(indices(v,1)))
-            @test_approx_eq real(pfilt) circshift(p, offset)
+            @test real(pfilt) ≈ circshift(p, offset)
             pofilt = irfft(rfft(po).*rfft(v), length(indices(v,1)))
             test_approx_eq_periodic(FFTView(real(pofilt)), circshift(po, offset))
             dims = (1,2)
             pfilt = ifft(fft(p, dims).*fft(v, dims), dims)
-            @test_approx_eq real(pfilt) circshift(p, offset)
+            @test real(pfilt) ≈ circshift(p, offset)
             pofilt = ifft(fft(po, dims).*fft(v, dims), dims)
             test_approx_eq_periodic(FFTView(real(pofilt)), circshift(po, offset))
             pfilt = irfft(rfft(p, dims).*rfft(v, dims), length(indices(v,1)), dims)
-            @test_approx_eq real(pfilt) circshift(p, offset)
+            @test real(pfilt) ≈ circshift(p, offset)
             pofilt = irfft(rfft(po, dims).*rfft(v, dims), length(indices(v,1)), dims)
             test_approx_eq_periodic(FFTView(real(pofilt)), circshift(po, offset))
         end

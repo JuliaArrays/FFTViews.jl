@@ -1,13 +1,21 @@
+__precompile__(true)
+
 module FFTViews
 
 using Base: tail, unsafe_length
+using Compat
 
 # A custom rangetype that will be used for indices and never throws a
 # boundserror because the domain is actually periodic.
 using CustomUnitRanges
 include(CustomUnitRanges.filename_for_urange)
 
-Base.checkindex(::Type{Bool}, inds::URange, ::Colon) = true
+if VERSION >= v"0.6.0-dev.2068"
+    Base.checkindex(::Type{Bool}, inds::URange, ::Base.Slice) = true
+    Base.checkindex(::Type{Bool}, inds::URange, ::Base.LogicalIndex) = true
+else
+    Base.checkindex(::Type{Bool}, inds::URange, ::Colon) = true
+end
 Base.checkindex(::Type{Bool}, inds::URange, ::Real) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::Range) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractVector{Bool}) = true
@@ -16,13 +24,13 @@ Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
 
 export FFTView
 
-abstract AbstractFFTView{T,N} <: AbstractArray{T,N}
+@compat abstract type AbstractFFTView{T,N} <: AbstractArray{T,N} end
 
 immutable FFTView{T,N,A<:AbstractArray} <: AbstractFFTView{T,N}
     parent::A
 
-    function FFTView(parent::A)
-        new(parent)
+    function (::Type{FFTView{T,N,A}}){T,N,A}(parent::A)
+        new{T,N,A}(parent)
     end
 end
 FFTView{T,N}(parent::AbstractArray{T,N}) = FFTView{T,N,typeof(parent)}(parent)
@@ -50,7 +58,7 @@ function Base.similar(A::AbstractArray, T::Type, shape::Tuple{URange,Vararg{URan
     FFTView(similar(A, T, map(length, shape)))
 end
 
-function Base.similar(f::Union{Function,DataType}, shape::Tuple{URange,Vararg{URange}})
+function Base.similar(f::Union{Function,Type}, shape::Tuple{URange,Vararg{URange}})
     all(x->first(x)==0, shape) || throw(BoundsError("cannot allocate FFTView with the first element of the range non-zero"))
     FFTView(similar(f, map(length, shape)))
 end
