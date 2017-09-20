@@ -1,3 +1,4 @@
 julia 0.6
 CustomUnitRanges
-Compat 0.17
+FFTW
+Compat 0.32
