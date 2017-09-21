@@ -3,7 +3,8 @@ __precompile__(true)
 module FFTViews
 
 using Base: tail, unsafe_length
-using Compat
+importall FFTW
+using Compat  # for Val(N) and AbstractRange
 
 # A custom rangetype that will be used for indices and never throws a
 # boundserror because the domain is actually periodic.
@@ -13,7 +14,7 @@ include(CustomUnitRanges.filename_for_urange)
 Base.checkindex(::Type{Bool}, inds::URange, ::Base.Slice) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::Base.LogicalIndex) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::Real) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::Range) = true
+Base.checkindex(::Type{Bool}, inds::URange, ::AbstractRange) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractVector{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
@@ -60,12 +61,12 @@ function Base.similar(f::Union{Function,Type}, shape::Tuple{URange,Vararg{URange
 end
 
 Base.reshape(F::FFTView{_,N}, ::Type{Val{N}}) where {_,N}   = F
-Base.reshape(F::FFTView{_,M}, ::Type{Val{N}}) where {_,M,N} = FFTView(reshape(parent(F), Val{N}))
+Base.reshape(F::FFTView{_,M}, ::Type{Val{N}}) where {_,M,N} = FFTView(reshape(parent(F), Val(N)))
 
-Base.fft(F::FFTView; kwargs...) = fft(parent(F); kwargs...)
-Base.rfft(F::FFTView; kwargs...) = rfft(parent(F); kwargs...)
-Base.fft(F::FFTView, dims; kwargs...) = fft(parent(F), dims; kwargs...)
-Base.rfft(F::FFTView, dims; kwargs...) = rfft(parent(F), dims; kwargs...)
+FFTW.fft(F::FFTView; kwargs...) = fft(parent(F); kwargs...)
+FFTW.rfft(F::FFTView; kwargs...) = rfft(parent(F); kwargs...)
+FFTW.fft(F::FFTView, dims; kwargs...) = fft(parent(F), dims; kwargs...)
+FFTW.rfft(F::FFTView, dims; kwargs...) = rfft(parent(F), dims; kwargs...)
 
 @inline reindex(::Type{V}, inds, I) where {V} = (_reindex(V, inds[1], I[1]), reindex(V, tail(inds), tail(I))...)
 reindex(::Type{V}, ::Tuple{}, ::Tuple{}) where {V} = ()

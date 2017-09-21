@@ -1,4 +1,5 @@
 using FFTViews
+importall FFTW
 using Base.Test
 
 function test_approx_eq_periodic(a::FFTView, b)
