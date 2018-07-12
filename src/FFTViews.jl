@@ -2,9 +2,8 @@ __precompile__(true)
 
 module FFTViews
 
-using Base: tail, unsafe_length
-importall FFTW
-using Compat  # for Val(N) and AbstractRange
+using Base: tail, unsafe_length, @propagate_inbounds
+using FFTW
 
 # A custom rangetype that will be used for indices and never throws a
 # boundserror because the domain is actually periodic.
@@ -19,6 +18,8 @@ Base.checkindex(::Type{Bool}, inds::URange, ::AbstractVector{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
 
+const FFTVRange{T} = Union{URange{T}, Base.Slice{URange{T}}}
+
 export FFTView
 
 abstract type AbstractFFTView{T,N} <: AbstractArray{T,N} end
@@ -31,31 +32,32 @@ struct FFTView{T,N,A<:AbstractArray} <: AbstractFFTView{T,N}
     end
 end
 FFTView(parent::AbstractArray{T,N}) where {T,N} = FFTView{T,N,typeof(parent)}(parent)
-FFTView{T,N}(dims::Dims{N}) where {T,N} = FFTView(Array{T,N}(dims))
-FFTView{T}(dims::Dims{N}) where {T,N} = FFTView(Array{T,N}(dims))
+FFTView{T,N}(dims::Dims{N}) where {T,N} = FFTView(Array{T,N}(undef, dims))
+FFTView{T}(dims::Dims{N}) where {T,N} = FFTView(Array{T,N}(undef, dims))
 
 # Note: there are no bounds checks because it's all periodic
-@inline function Base.getindex(F::FFTView{T,N}, I::Vararg{Int,N}) where {T,N}
+@inline @propagate_inbounds function Base.getindex(F::FFTView{T,N}, I::Vararg{Int,N}) where {T,N}
     P = parent(F)
-    @inbounds ret = P[reindex(FFTView, indices(P), I)...]
+    @inbounds ret = P[reindex(FFTView, axes(P), I)...]
     ret
 end
 
-@inline function Base.setindex!(F::FFTView{T,N}, val, I::Vararg{Int,N}) where {T,N}
+@inline @propagate_inbounds function Base.setindex!(F::FFTView{T,N}, val, I::Vararg{Int,N}) where {T,N}
     P = parent(F)
-    @inbounds P[reindex(FFTView, indices(P), I)...] = val
+    @inbounds P[reindex(FFTView, axes(P), I)...] = val
 end
 
 Base.parent(F::AbstractFFTView) = F.parent
-Base.indices(F::AbstractFFTView) = map(indrange, indices(parent(F)))
+Base.axes(F::AbstractFFTView) = map(indrange, axes(parent(F)))
+Base.size(F::AbstractFFTView) = size(parent(F))
 indrange(i) = URange(first(i)-1, last(i)-1)
 
-function Base.similar(A::AbstractArray, T::Type, shape::Tuple{URange,Vararg{URange}})
+function Base.similar(A::AbstractArray, T::Type, shape::Tuple{FFTVRange,Vararg{FFTVRange}})
     all(x->first(x)==0, shape) || throw(BoundsError("cannot allocate FFTView with the first element of the range non-zero"))
     FFTView(similar(A, T, map(length, shape)))
 end
 
-function Base.similar(f::Union{Function,Type}, shape::Tuple{URange,Vararg{URange}})
+function Base.similar(f::Union{Function,Type}, shape::Tuple{FFTVRange,Vararg{FFTVRange}})
     all(x->first(x)==0, shape) || throw(BoundsError("cannot allocate FFTView with the first element of the range non-zero"))
     FFTView(similar(f, map(length, shape)))
 end
