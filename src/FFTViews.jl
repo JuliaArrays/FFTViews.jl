@@ -18,7 +18,7 @@ Base.checkindex(::Type{Bool}, inds::URange, ::AbstractVector{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray{Bool}) = true
 Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
 
-const FFTVRange{T} = Union{URange{T}, Base.Slice{URange{T}}}
+const FFTVRange{T} = Union{URange{T}, Base.Slice{URange{T}}, Base.IdentityUnitRange{URange{T}}}
 
 export FFTView
 
