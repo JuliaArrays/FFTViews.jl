@@ -1,5 +1,3 @@
-__precompile__(true)
-
 module FFTViews
 
 using Base: tail, unsafe_length, @propagate_inbounds
@@ -10,15 +8,30 @@ using FFTW
 using CustomUnitRanges
 include(CustomUnitRanges.filename_for_urange)
 
-Base.checkindex(::Type{Bool}, inds::URange, ::Base.Slice) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::Base.LogicalIndex) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::Real) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::AbstractRange) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::AbstractVector{Bool}) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray{Bool}) = true
-Base.checkindex(::Type{Bool}, inds::URange, ::AbstractArray) = true
+@static if isdefined(Base, :IdentityUnitRange)
+    const indextypes = (URange, Base.IdentityUnitRange{<:URange})
+    const FFTVRange{T} = Union{URange{T}, Base.Slice{URange{T}}, Base.IdentityUnitRange{URange{T}}}
+    indrange(i) = Base.IdentityUnitRange(URange(first(i)-1, last(i)-1))
+else
+    const indextypes = (URange, Base.Slice{<:URange})
+    const FFTVRange{T} = Union{URange{T}, Base.Slice{URange{T}}}
+    indrange(i) = Base.Slice(URange(first(i)-1, last(i)-1))
+end
 
-const FFTVRange{T} = Union{URange{T}, Base.Slice{URange{T}}, Base.IdentityUnitRange{URange{T}}}
+for T in indextypes
+    @eval begin
+        Base.checkindex(::Type{Bool}, ::$T, ::Base.Slice) = true
+        Base.checkindex(::Type{Bool}, ::$T, ::Base.LogicalIndex) = true
+        Base.checkindex(::Type{Bool}, ::$T, ::Real) = true
+        Base.checkindex(::Type{Bool}, ::$T, ::AbstractRange) = true
+        Base.checkindex(::Type{Bool}, ::$T, ::AbstractVector{Bool}) = true
+        Base.checkindex(::Type{Bool}, ::$T, ::AbstractArray{Bool}) = true
+        Base.checkindex(::Type{Bool}, ::$T, ::AbstractArray) = true
+    end
+    if isdefined(Base, :IdentityUnitRange)
+        @eval Base.checkindex(::Type{Bool}, ::$T, ::Base.IdentityUnitRange) = true
+    end
+end
 
 export FFTView
 
@@ -50,7 +63,6 @@ end
 Base.parent(F::AbstractFFTView) = F.parent
 Base.axes(F::AbstractFFTView) = map(indrange, axes(parent(F)))
 Base.size(F::AbstractFFTView) = size(parent(F))
-indrange(i) = URange(first(i)-1, last(i)-1)
 
 function Base.similar(A::AbstractArray, T::Type, shape::Tuple{FFTVRange,Vararg{FFTVRange}})
     all(x->first(x)==0, shape) || throw(BoundsError("cannot allocate FFTView with the first element of the range non-zero"))
