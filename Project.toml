@@ -1,12 +1,15 @@
 name = "FFTViews"
 uuid = "4f61f5a4-77b1-5117-aa51-3ab5ef4ef0cd"
-version = "0.3.0"
+author = ["Tim Holy <tim.holy@gmail.com>"]
+version = "0.3.1"
 
 [deps]
 CustomUnitRanges = "dc8bdbbb-1ca9-579f-8c36-e416f6a65cce"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 
 [compat]
+CustomUnitRanges = "0.2, 1"
+FFTW = "0.3, 1"
 julia = "1"
 
 [extras]
