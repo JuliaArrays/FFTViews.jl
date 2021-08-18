@@ -1,10 +1,13 @@
 using FFTViews
 using FFTW
+using OffsetArrays
 using Test
+
+@test isempty(detect_ambiguities(FFTViews))
 
 function test_approx_eq_periodic(a::FFTView, b)
     for I in CartesianIndices(axes(b))
-        @test a[I-one(I)] ≈ b[I]
+        @test a[I-oneunit(I)] ≈ b[I]
     end
     nothing
 end
@@ -42,6 +45,8 @@ end
     @test reshape(a, Val{2}) === a
     @test reshape(a, Val{1}) == FFTView(convert(Vector{Float64}, collect(1:35)))
     @test axes(reshape(a, Val{3})) == (0:4,0:6,0:0)
+    # issue #20
+    @test FFTView(ones((3))) .+ 1 == FFTView(fill(2, 3))
 end
 
 @testset "convolution-shift" begin
@@ -77,8 +82,6 @@ end
         end
     end
 end
-
-using OffsetArrays
 
 @testset "convolution-offset" begin
     for l2 in (8,9), l1 in (8,9)

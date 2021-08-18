@@ -1,6 +1,6 @@
 module FFTViews
 
-using Base: tail, unsafe_length, @propagate_inbounds
+using Base: tail, @propagate_inbounds
 using FFTW
 
 # A custom rangetype that will be used for indices and never throws a
@@ -69,9 +69,9 @@ function Base.similar(A::AbstractArray, T::Type, shape::Tuple{FFTVRange,Vararg{F
     FFTView(similar(A, T, map(length, shape)))
 end
 
-function Base.similar(f::Union{Function,Type}, shape::Tuple{FFTVRange,Vararg{FFTVRange}})
+function Base.similar(::Type{AA}, shape::Tuple{FFTVRange,Vararg{FFTVRange}}) where AA<:AbstractArray
     all(x->first(x)==0, shape) || throw(BoundsError("cannot allocate FFTView with the first element of the range non-zero"))
-    FFTView(similar(f, map(length, shape)))
+    FFTView(similar(AA, map(length, shape)))
 end
 
 Base.reshape(F::FFTView{_,N}, ::Type{Val{N}}) where {_,N}   = F
@@ -86,6 +86,6 @@ FFTW.rfft(F::FFTView, dims; kwargs...) = rfft(parent(F), dims; kwargs...)
 reindex(::Type{V}, ::Tuple{}, ::Tuple{}) where {V} = ()
 _reindex(::Type{FFTView}, ind, i) = modrange(i+1, ind)
 
-modrange(i, rng::AbstractUnitRange) = mod(i-first(rng), unsafe_length(rng))+first(rng)
+modrange(i, rng::AbstractUnitRange) = mod(i-first(rng), length(rng))+first(rng)
 
 end # module
