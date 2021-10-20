@@ -2,9 +2,17 @@ using FFTViews
 using FFTW
 using Test
 
+if VERSION < v"1.1"
+    # https://github.com/JuliaLang/julia/pull/29442
+    _oneunit(::CartesianIndex{N}) where {N} = _oneunit(CartesianIndex{N})
+    _oneunit(::Type{CartesianIndex{N}}) where {N} = CartesianIndex(ntuple(x -> 1, Val(N)))
+else
+    const _oneunit = Base.oneunit
+end
+
 function test_approx_eq_periodic(a::FFTView, b)
     for I in CartesianIndices(axes(b))
-        @test a[I-one(I)] ≈ b[I]
+        @test a[I-_oneunit(I)] ≈ b[I]
     end
     nothing
 end
