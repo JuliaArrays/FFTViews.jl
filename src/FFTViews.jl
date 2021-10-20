@@ -86,6 +86,11 @@ FFTW.rfft(F::FFTView, dims; kwargs...) = rfft(parent(F), dims; kwargs...)
 reindex(::Type{V}, ::Tuple{}, ::Tuple{}) where {V} = ()
 _reindex(::Type{FFTView}, ind, i) = modrange(i+1, ind)
 
-modrange(i, rng::AbstractUnitRange) = mod(i-first(rng), unsafe_length(rng))+first(rng)
+if VERSION >= v"1.7.0-beta4"
+    # https://github.com/JuliaLang/julia/pull/40382
+    modrange(i, rng::AbstractUnitRange) = mod(i-first(rng), length(rng))+first(rng)
+else
+    modrange(i, rng::AbstractUnitRange) = mod(i-first(rng), unsafe_length(rng))+first(rng)
+end
 
 end # module

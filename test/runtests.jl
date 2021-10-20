@@ -4,7 +4,7 @@ using Test
 
 function test_approx_eq_periodic(a::FFTView, b)
     for I in CartesianIndices(axes(b))
-        @test a[I-one(I)] ≈ b[I]
+        @test a[I-oneunit(I)] ≈ b[I]
     end
     nothing
 end
