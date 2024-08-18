@@ -10,6 +10,10 @@ else
     const _oneunit = Base.oneunit
 end
 
+_no_offset_view(r::AbstractUnitRange) = first(r):last(r)   # ensure 1-based indices
+no_offset_axes(x, d) = _no_offset_view(axes(x, d))
+no_offset_axes(x) = map(_no_offset_view, axes(x))
+
 function test_approx_eq_periodic(a::FFTView, b)
     for I in CartesianIndices(axes(b))
         @test a[I-_oneunit(I)] ≈ b[I]
@@ -27,10 +31,10 @@ end
 
 @testset "basics" begin
     a = FFTView{Float64,2}((5,7))
-    @test axes(a) == (0:4, 0:6)
+    @test no_offset_axes(a) == (0:4, 0:6)
     @test eltype(a) == Float64
     a = FFTView{Float64}((5,7))
-    @test axes(a) == (0:4, 0:6)
+    @test no_offset_axes(a) == (0:4, 0:6)
     @test eltype(a) == Float64
     @test_throws MethodError FFTView{Float64,3}((5,7))
     for i = 1:35
@@ -49,14 +53,14 @@ end
     @test eltype(b) == Int
     @test reshape(a, Val{2}) === a
     @test reshape(a, Val{1}) == FFTView(convert(Vector{Float64}, collect(1:35)))
-    @test axes(reshape(a, Val{3})) == (0:4,0:6,0:0)
+    @test no_offset_axes(reshape(a, Val{3})) == (0:4,0:6,0:0)
 end
 
 @testset "convolution-shift" begin
     for l in (8,9)
         a = zeros(l)
         v = FFTView(a)
-        @test axes(v,1) == 0:l-1
+        @test no_offset_axes(v,1) == 0:l-1
         v[0] = 1
         p = rand(l)
         pfilt = ifft(fft(p).*fft(v))
@@ -73,7 +77,7 @@ end
     for l2 in (8,9), l1 in (8,9)
         a = zeros(l1,l2)
         v = FFTView(a)
-        @test axes(v) == (0:l1-1, 0:l2-1)
+        @test no_offset_axes(v) == (0:l1-1, 0:l2-1)
         p = rand(l1,l2)
         for offset in ((0,0), (-1,0), (0,-1), (-1,-1),
                        (1,0), (0,1), (1,1), (1,-1), (-1,1),
@@ -92,7 +96,7 @@ using OffsetArrays
     for l2 in (8,9), l1 in (8,9)
         a = OffsetArray(zeros(l1,l2), (-2,-3))
         v = FFTView(a)
-        @test axes(v) == (-2:l1-3, -3:l2-4)
+        @test no_offset_axes(v) == (-2:l1-3, -3:l2-4)
         p = rand(l1,l2)
         po = OffsetArray(copy(p), (5,-1))
         for offset in ((0,0), (-1,0), (0,-1), (-1,-1),
